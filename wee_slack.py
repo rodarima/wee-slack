@@ -3736,16 +3736,14 @@ def handle_emojilist(emoji_json, eventrouter, team, channel, metadata):
         team.emoji_completions.extend(emoji_json["emoji"].keys())
 
 
-def handle_channelsinfo(channel_json, eventrouter, team, channel, metadata):
-    channel.set_unread_count_display(
-        channel_json["channel"].get("unread_count_display", 0)
-    )
-    channel.set_members(channel_json["channel"]["members"])
-
-
-def handle_groupsinfo(group_json, eventrouter, team, channel, metadatas):
-    channel.set_unread_count_display(group_json["group"].get("unread_count_display", 0))
-    channel.set_members(group_json["group"]["members"])
+def handle_conversationsinfo(channel_json, eventrouter, team, channel, metadata):
+    channel_info = channel_json["channel"]
+    if "unread_count_display" in channel_info:
+        channel.set_unread_count_display(channel_info["unread_count_display"])
+    if "last_read" in channel_info:
+        channel.last_read = SlackTS(channel_info["last_read"])
+    if "members" in channel_info:
+        channel.set_members(channel_info["members"])
 
 
 def handle_conversationsopen(
