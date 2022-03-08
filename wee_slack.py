@@ -59,9 +59,9 @@ except ImportError:
     Reversible = object
 
 try:
-    from urllib.parse import quote, urlencode
+    from urllib.parse import quote, unquote, urlencode
 except ImportError:
-    from urllib import quote, urlencode
+    from urllib import quote, unquote, urlencode
 
 try:
     JSONDecodeError = json.JSONDecodeError
@@ -390,6 +390,15 @@ def format_exc_tb():
 def format_exc_only():
     etype, value, _ = sys.exc_info()
     return "".join(decode_from_utf8(traceback.format_exception_only(etype, value)))
+
+
+def url_encode_if_not_encoded(value):
+    decoded = unquote(value)
+    is_encoded = value != decoded
+    if is_encoded:
+        return value
+    else:
+        return quote(value)
 
 
 def get_localvar_type(slack_type):
@@ -1477,7 +1486,10 @@ class SlackRequest(object):
 
     def options(self):
         cookies = "; ".join(
-            ["{}={}".format(key, value) for key, value in self.cookies.items()]
+            [
+                "{}={}".format(key, url_encode_if_not_encoded(value))
+                for key, value in self.cookies.items()
+            ]
         )
         return {
             "useragent": "wee_slack {}".format(SCRIPT_VERSION),
